@@ -9,6 +9,9 @@ import {
   useLocation,
 } from "react-router-dom";
 import "./App.css";
+import { Table } from "antd";
+//eslint-disable-next-line
+import "antd/dist/antd.css";
 
 const AuthContext = React.createContext(null);
 
@@ -19,23 +22,30 @@ const useAuth = () => {
 const Navigation = () => {
   const { onLogout, token } = useAuth();
   const location = useLocation();
-  console.log(location);
   if (location.pathname === "/") return <></>;
   return (
     <nav>
-      <NavLink to="/main">Home</NavLink>
-      <NavLink to="/dashboard2">Dashboard2</NavLink>
+      <NavLink to="/dashboard" style={{ padding: 20 }}>
+        Dashboard
+      </NavLink>
+      <NavLink to="/nope" style={{ padding: 20 }}>
+        Non Existent Page
+      </NavLink>
 
       {token && (
-        <button type="button" onClick={onLogout}>
-          Sign Out
-        </button>
+        <>
+          <span style={{ padding: 20 }}>Authenticated as {token}</span>
+          <button type="button" onClick={onLogout}>
+            Sign Out
+          </button>
+        </>
       )}
     </nav>
   );
 };
 
 const ProtectedRoute = ({ children }) => {
+  // Comment out line 49-53 to disable auth for testing on Dashboard
   const { token } = useAuth();
 
   if (!token) {
@@ -45,12 +55,12 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-const Home = () => {
+const Login = () => {
   const [data, setData] = React.useState({
     username: "",
     password: "",
   });
-  const { setToken, setError, error } = React.useContext(AuthContext);
+  const { setToken } = React.useContext(AuthContext);
   const { username, password } = data;
   const navigate = useNavigate();
 
@@ -71,16 +81,15 @@ const Home = () => {
           alert(json.error);
         } else {
           setToken(json.accessToken);
-          setError(null);
-          navigate("/main");
+          navigate("/dashboard");
         }
       });
   };
 
   return (
-    <>
+    <div style={{ padding: 20 }}>
       <h2>Home (No Auth)</h2>
-      <form>
+      <form style={{ padding: 20 }}>
         <label htmlFor="username">Username:</label>
         <br />
         <input
@@ -103,37 +112,140 @@ const Home = () => {
           Sign In
         </button>
       </form>
-    </>
+    </div>
   );
 };
 
 const Dashboard = () => {
-  const { token } = useAuth();
+  const [data, setData] = React.useState();
+  const [tasks, setTasks] = React.useState({
+    0: null,
+    1: null,
+    2: null,
+  });
+  const [randomFailure, setRandomFailure] = React.useState();
+
+  const handleUpdate = (e, key) => {
+    e.preventDefault();
+    fetch("/robots_update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...data[key],
+        task: tasks[key],
+        /// if you want to update return time of the task below is the value
+        timeComplete: new Date(
+          new Date().getTime() + 1 * 60000
+        ).toLocaleTimeString(),
+      }),
+    }).then((res) => res.json());
+  };
+
+  const columns = [
+    {
+      title: "Robot",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Task",
+      dataIndex: "task",
+      key: "task",
+    },
+    {
+      title: "Time Complete",
+      dataIndex: "timeComplete",
+      key: "timeComplete",
+    },
+    {
+      title: "Current Time",
+      key: "currentTime",
+      render: () => new Date().toLocaleTimeString(),
+    },
+    {
+      title: "Status",
+      key: "status",
+      render: (_, record) => {
+        return record.task
+          ? record.timeComplete <= new Date().toLocaleTimeString() &&
+            randomFailure
+            ? "Task Failed"
+            : record.timeComplete <= new Date().toLocaleTimeString()
+            ? "Complete & Available"
+            : "In Progress"
+          : "Available";
+      },
+    },
+    {
+      title: "Action",
+      key: "operation",
+      fixed: "right",
+      width: 100,
+      render: (_, record, index) =>
+        record.task &&
+        record.timeComplete >= new Date().toLocaleTimeString() ? (
+          <div>Task in progress.</div>
+        ) : (
+          <>
+            <input
+              type="text"
+              name="task"
+              value={tasks[index]}
+              onChange={(e) => setTasks({ ...tasks, [index]: e.target.value })}
+            />
+            <br />
+            <button
+              key={index}
+              type="button"
+              onClick={(e) => handleUpdate(e, index)}
+            >
+              Add Task
+            </button>
+            <br />
+            All tasks are added for 1 minute from now
+          </>
+        ),
+    },
+  ];
+
+  const getData = () =>
+    fetch("/robots")
+      .then((res) => res.json())
+      .then((data) => setData(data));
+
+  React.useEffect(() => {
+    getData();
+    const interval = setInterval(() => {
+      getData();
+      // refetch data every 1 seconds to get status of robots
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // get new randomFailure true/false value every 30 seconds
+  React.useEffect(() => {
+    const failure = Math.random() > 0.5;
+    setRandomFailure(failure);
+    const interval = setInterval(() => {
+      setRandomFailure(failure);
+      // refetch data every 5 seconds to get status of robots
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <>
-      <h2>Dashboard (Auth)</h2>
-
-      <div>Authenticated as {token}</div>
-    </>
-  );
-};
-
-const Dashboard2 = () => {
-  const { token } = useAuth();
-
-  return (
-    <>
+    <div style={{ padding: 20 }}>
       <h2>Dashboard 2 (Auth)</h2>
 
-      <div>Authenticated as {token}</div>
-    </>
+      <Table columns={columns} dataSource={data} pagination={false} />
+    </div>
   );
 };
 
 const AuthProvider = ({ children }) => {
   const [token, setToken] = React.useState(null);
-  const [error, setError] = React.useState(null);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -144,8 +256,6 @@ const AuthProvider = ({ children }) => {
   const value = {
     token,
     setToken,
-    error,
-    setError,
     onLogout: handleLogout,
   };
 
@@ -156,20 +266,12 @@ const App = () => {
   return (
     <Router>
       <AuthProvider>
-        <h1>SuperCoolRobotics</h1>
+        <h1 style={{ padding: 20 }}>SuperCoolRobotics</h1>
 
         <Navigation />
 
         <Routes>
-          <Route index element={<Home />} />
-          <Route
-            path="main"
-            element={
-              <ProtectedRoute>
-                <Dashboard2 />
-              </ProtectedRoute>
-            }
-          />
+          <Route index element={<Login />} />
           <Route
             path="dashboard"
             element={

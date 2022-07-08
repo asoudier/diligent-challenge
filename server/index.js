@@ -19,40 +19,28 @@ const users = [
   },
 ];
 
-const defaultTasks = [
-  {
-    name: "task 1",
-    id: "1",
-    timeComplete: Date.now(),
-  },
-  {
-    name: "task 2",
-    id: "2",
-    timeComplete: Date.now(),
-  },
-  {
-    name: "task3",
-    id: "3",
-    timeComplete: Date.now(),
-  },
-];
-
-const robots = [
+let robots = [
   {
     name: "robot 1",
-    id: "1",
-    tasks: [],
+    id: "0",
+    task: "default task",
+    timeComplete: new Date(
+      new Date().getTime() + 1 * 60000
+    ).toLocaleTimeString(),
   },
   {
-    name: "robots 2",
+    name: "robot 2",
+    id: "1",
+    task: undefined,
+    timeComplete: undefined,
+  },
+  {
+    name: "robot 3",
     id: "2",
-    tasks: [],
+    task: undefined,
+    timeComplete: undefined,
   },
 ];
-
-app.get("/api", (req, res) => {
-  res.json({ message: "Hello from server!" });
-});
 
 app.post("/login", (req, res) => {
   // Filter user from the users array by username and password
@@ -73,7 +61,13 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/robots", (req, res) => {
-  res.json({ data: robots });
+  res.json(robots);
+});
+
+app.post("/robots_update", (req, res) => {
+  // Update Data
+  robots[req.body.id] = req.body;
+  res.json({ message: "success" });
 });
 
 app.listen(PORT, () => {
