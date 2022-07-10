@@ -24,21 +24,22 @@ let robots = [
     name: "robot 1",
     id: "0",
     task: "default task",
-    timeComplete: new Date(
-      new Date().getTime() + 1 * 60000
-    ).toLocaleTimeString(),
+    timeComplete: new Date(new Date().getTime() + 30000).toLocaleTimeString(),
+    randomFailure: Math.random() > 0.5,
   },
   {
     name: "robot 2",
     id: "1",
     task: undefined,
     timeComplete: undefined,
+    randomFailure: Math.random() > 0.5,
   },
   {
     name: "robot 3",
     id: "2",
     task: undefined,
     timeComplete: undefined,
+    randomFailure: Math.random() > 0.5,
   },
 ];
 

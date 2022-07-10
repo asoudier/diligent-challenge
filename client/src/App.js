@@ -123,7 +123,6 @@ const Dashboard = () => {
     1: null,
     2: null,
   });
-  const [randomFailure, setRandomFailure] = React.useState();
 
   const handleUpdate = (e, key) => {
     e.preventDefault();
@@ -135,8 +134,9 @@ const Dashboard = () => {
         task: tasks[key],
         /// if you want to update return time of the task below is the value
         timeComplete: new Date(
-          new Date().getTime() + 1 * 60000
+          new Date().getTime() + 30000
         ).toLocaleTimeString(),
+        randomFailure: Math.random() > 0.5,
       }),
     }).then((res) => res.json());
   };
@@ -168,7 +168,7 @@ const Dashboard = () => {
       render: (_, record) => {
         return record.task
           ? record.timeComplete <= new Date().toLocaleTimeString() &&
-            randomFailure
+            record.randomFailure
             ? "Task Failed"
             : record.timeComplete <= new Date().toLocaleTimeString()
             ? "Complete & Available"
@@ -202,7 +202,7 @@ const Dashboard = () => {
               Add Task
             </button>
             <br />
-            All tasks are added for 1 minute from now
+            All tasks are added for 30 seconds from now
           </>
         ),
     },
@@ -217,20 +217,8 @@ const Dashboard = () => {
     getData();
     const interval = setInterval(() => {
       getData();
-      // refetch data every 1 seconds to get status of robots
+      // refetch data every 1 second to get status of robots
     }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // get new randomFailure true/false value every 30 seconds
-  React.useEffect(() => {
-    const failure = Math.random() > 0.5;
-    setRandomFailure(failure);
-    const interval = setInterval(() => {
-      setRandomFailure(failure);
-      // refetch data every 5 seconds to get status of robots
-    }, 30000);
 
     return () => clearInterval(interval);
   }, []);
