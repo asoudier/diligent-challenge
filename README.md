@@ -57,3 +57,33 @@ Obviously with limited time I had to make some sacrifices. Here are some of the 
 
 
 <img width="1783" alt="Screen Shot 2022-07-08 at 4 39 13 PM" src="https://user-images.githubusercontent.com/17502133/178073827-4b863ebf-8bb5-4644-808f-50e91895d880.png">
+
+### Challenge
+
+SuperCoolRobotics Inc is looking to build a system that allows multiple human Robot Operators to coordinate multiple robots.
+They would like to have two (or more) robot operators to simultaneously (through separate open web pages) operate three (or more) robots. 
+
+For this exercise, take (nominally) 4 hours and produce a system with as many of the following characteristics as you feel capable of fitting in:
+- a backend process, written in nodejs (or another language if you find that preferable)
+- a web front end written in React
+- a Task is an entity with a unique id, as well as a human-readable description.
+- on launch, the backend populates with multiple tasks (can be created on the fly or read from persistence)
+- username + password authentication (can be match-based against accounts hardcoded in the backend)
+- Robot operators can assign a robot to a task. 
+- Robot operators can view the status of the robot operating the task.
+- Robot operators can view ongoing tasks. 
+- Robot operators know when a robot can be assigned another task.
+- A robot may only be assigned a single task at a time.
+- The backend arbitrates between simultaneous attempts by two operators to assign the same task.
+- The backend simulates the processing of an assigned task, eventually ushering the task into a done state (with some percentage of task failures also simulated).
+- If an error occurs, it is made evident to the operator.
+ 
+Additionally, but not required, it would be nice to know: 
+- Which tasks were assigned to which robot. 
+- Which robot operator assigned the tasks.
+- Additional insights on robot performance (ex. jobs succeeded/total_jobs_assigned)
+
+Things to not worry about:
+- Retrying failed tasks. 
+
+Please provide a README with complete instructions needed to run your front and back end
